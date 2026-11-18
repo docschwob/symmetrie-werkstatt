@@ -111,12 +111,14 @@ const TYPES={
   achse:{name:'Achsenspiegelung',short:'Achse'},
   dreh:{name:'Drehung',short:'Drehung'},
   punkt:{name:'Punktspiegelung',short:'Punkt'},
-  versch:{name:'Verschiebung',short:'Verschieb.'}
+  versch:{name:'Verschiebung',short:'Verschieb.'},
+  schub:{name:'Schubspiegelung',short:'Schub'}
 };
 function applyMap(m,P){
   if(m.t==='achse')return reflect(P,m.A,m.B);
   if(m.t==='dreh')return rotate(P,m.Z,m.w);
   if(m.t==='punkt')return pointRefl(P,m.Z);
+  if(m.t==='schub')return translate(reflect(P,m.A,m.B),sub(m.B,m.A));
   return translate(P,sub(m.V1,m.V0));
 }
 
@@ -136,12 +138,14 @@ function viewLabor(app){
     <label class="tg"><input type="checkbox" id="so"> Umlaufsinn anzeigen</label>
     <label class="tg"><input type="checkbox" id="sh"> Bild verdecken (erst vorhersagen, dann aufdecken)</label>
     <p class="hint">Ziehen Sie die Ecken A, B, C und die blauen Griffe. Alles rastet auf Gitterpunkte ein.</p>
+    <p class="hint" id="schubhint" style="display:none">Schubspiegelung: Spiegelung an g, verkettet mit einer Verschiebung um v parallel zu g. Die beiden Griffe legen g und zugleich v fest. Mit „Verbindungen“ sehen Sie grau das Zwischenbild nach der Spiegelung. Die Reihenfolge ist egal – probieren Sie aus, warum.</p>
   </div>`;
   const types=app.querySelector('#types');
-  for(const k in TYPES){const b=document.createElement('button');b.textContent=TYPES[k].name;b.className=lab.t===k?'on':'';b.onclick=()=>{lab.t=k;viewLabor(app)};types.appendChild(b);}
+  for(const k in TYPES){const b=document.createElement('button');b.textContent=TYPES[k].name;b.className=lab.t===k?'on':'';b.onclick=()=>{lab.t=k;if(k==='schub'&&len(sub(lab.B,lab.A))>6){lab.A=V(0,-1);lab.B=V(-4,-1);}viewLabor(app)};types.appendChild(b);}
   const ctl=app.querySelector('#ctl');
   if(lab.t==='dreh'){ctl.innerHTML=`<div class="row" style="margin-top:10px"><span style="min-width:120px">Drehwinkel: <b id="wv"></b></span><input type="range" id="w" min="-180" max="180" step="15"></div><p class="hint">Positive Winkel: gegen den Uhrzeigersinn.</p>`;
     const w=ctl.querySelector('#w');w.value=lab.w;w.oninput=()=>{lab.w=+w.value;draw()};}
+  app.querySelector('#schubhint').style.display=lab.t==='schub'?'block':'none';
   for(const [id,key] of [['sl','lines'],['so','orient'],['sh','hide']]){const c=app.querySelector('#'+id);c.checked=lab.show[key];c.onchange=()=>{lab.show[key]=c.checked;draw()};}
   const {svg,g}=board(app.querySelector('#bd'));
   let drag=null;
@@ -150,7 +154,9 @@ function viewLabor(app){
     const nav=css('--navy'),mag=css('--mag');
     const T=lab.T, Tb=T.map(p=>applyMap(lab,p));
     // Abbildungs-Elemente
-    if(lab.t==='achse'){lineThrough(g,lab.A,lab.B,{stroke:nav,'stroke-width':.08});label(g,lab.B,'g',nav,.3,-.1);}
+    if(lab.t==='achse'||lab.t==='schub'){lineThrough(g,lab.A,lab.B,{stroke:nav,'stroke-width':.08});label(g,lab.B,'g',nav,.3,-.1);}
+    if(lab.t==='schub'){arrowHead(g,lab.A,lab.B,nav,.12);label(g,mul(add(lab.A,lab.B),.5),'v',nav,-.6,.2);
+      if(!lab.show.hide&&lab.show.lines){const Tm=T.map(p=>reflect(p,lab.A,lab.B));triangle(g,Tm,css('--mut'),'none','.12 .12');}}
     if(lab.t==='dreh'||lab.t==='punkt'){label(g,lab.Z,'Z',nav,.3,.3);}
     if(lab.t==='versch'){arrowHead(g,lab.V0,lab.V1,nav,.09);label(g,mul(add(lab.V0,lab.V1),.5),'v',nav,.2,.3);}
     if(!lab.show.hide){
@@ -168,7 +174,7 @@ function viewLabor(app){
     ['A','B','C'].forEach((n,i)=>label(g,T[i],n,nav));
     // Griffe
     T.forEach((P,i)=>handle(g,P,nav,.24).dataset.h='T'+i);
-    if(lab.t==='achse'){handle(g,lab.A,nav).dataset.h='A';handle(g,lab.B,nav).dataset.h='B';}
+    if(lab.t==='achse'||lab.t==='schub'){handle(g,lab.A,nav).dataset.h='A';handle(g,lab.B,nav).dataset.h='B';}
     if(lab.t==='dreh'||lab.t==='punkt')handle(g,lab.Z,nav).dataset.h='Z';
     if(lab.t==='versch'){handle(g,lab.V0,nav,.26).dataset.h='V0';handle(g,lab.V1,nav).dataset.h='V1';}
     // Eigenschaften
@@ -177,9 +183,11 @@ function viewLabor(app){
     if(lab.t==='achse')fix='Fixpunkte: alle Punkte auf g (Fixpunktgerade)';
     else if(lab.t==='dreh')fix=(((lab.w%360)+360)%360===0)?'Drehung um 0°: Identität, alle Punkte fest':'Fixpunkt: nur Z';
     else if(lab.t==='punkt')fix='Fixpunkt: nur Z';
+    else if(lab.t==='schub')fix='keine Fixpunkte; Fixgerade: nur g';
     else fix=eq(lab.V0,lab.V1)?'Nullvektor: Identität':'keine Fixpunkte';
     let extra='';
     if(lab.t==='versch'){const v=sub(lab.V1,lab.V0);extra=`<span class="badge">v = (${v.x} | ${v.y})</span>`;}
+    if(lab.t==='schub'){const v=sub(lab.B,lab.A);extra=`<span class="badge">v = (${v.x} | ${v.y}), parallel zu g</span>`;}
     if(lab.t==='dreh')extra=`<span class="badge">${lab.w>0?'gegen den Uhrzeigersinn':lab.w<0?'im Uhrzeigersinn':'kein Drehsinn'}</span>`;
     app.querySelector('#badges').innerHTML=lab.show.hide?'<span class="badge m">Bild verdeckt – wo liegt A′? Erst überlegen, dann aufdecken.</span>':
       `<span class="badge ${same?'':'m'}">Orientierung ${same?'erhalten (gleichsinnig)':'umgekehrt (gegensinnig)'}</span><span class="badge">${fix}</span>${extra}`;
@@ -204,11 +212,12 @@ function genTask(t){
     if(t==='achse'){const A=V(ri(-3,3),ri(-3,3)),d=pick([V(1,0),V(0,1),V(1,1),V(1,-1),V(1,2),V(2,1)]);m={t,A,B:add(A,mul(d,2))};}
     if(t==='dreh'){m={t,Z:V(ri(-3,3),ri(-3,3)),w:pick([90,-90,180,90,-90])};}
     if(t==='punkt'){m={t,Z:V(ri(-3,3),ri(-3,3))};}
+    if(t==='schub'){const A=V(ri(-3,3),ri(-3,3)),d=pick([V(1,0),V(0,1),V(1,1),V(1,-1)]),k=pick([2,3,-2,-3]);m={t,A,B:add(A,mul(d,k))};if(!inView(m.B))continue;}
     if(t==='versch'){const v=V(ri(-4,4),ri(-4,4));if(len(v)<2)continue;const V0=V(ri(-6,6-Math.max(0,v.x)),ri(-6,6-Math.max(0,v.y)));m={t,V0,V1:add(V0,v)};if(!inView(m.V1)||!inView(m.V0))continue;}
     const P=V(ri(-5,5),ri(-5,5));const Q=round(applyMap(m,P));
     if(!inView(Q)||eq(P,Q))continue;
     if(Math.abs(Q.x-Math.round(Q.x))>1e-6||Math.abs(Q.y-Math.round(Q.y))>1e-6)continue;
-    if(t==='achse'&&distLine(P,m.A,m.B)<1)continue;
+    if((t==='achse'||t==='schub')&&distLine(P,m.A,m.B)<1)continue;
     if((t==='dreh'||t==='punkt')&&len(sub(P,m.Z))<2)continue;
     return {m,P,Q};
   }
@@ -235,15 +244,22 @@ function classify(task,X){
     if(Math.abs(len(sub(X,m.Z))-len(sub(P,m.Z)))<e)return {k:'C',txt:'Der Abstand zu Z stimmt, aber P′ liegt nicht auf der Geraden PZ. Die Punktspiegelung ist eine Drehung um genau 180°.'};
     return {k:'D',txt:'Tipp: Gehen Sie von P zu Z – und dann denselben Weg noch einmal weiter.'};
   }
+  if(m.t==='schub'){
+    const v=sub(m.B,m.A), Pm=round(reflect(P,m.A,m.B));
+    if(eq(X,Pm))return {k:'B',txt:'Nur gespiegelt – die Verschiebung um v fehlt. Eine Schubspiegelung besteht aus beidem.'};
+    if(eq(X,round(sub(Pm,v))))return {k:'C',txt:'Gespiegelt, aber gegen die Richtung von v verschoben. Der Pfeil zeigt von A nach B.'};
+    if(eq(X,round(add(P,v))))return {k:'D',txt:'Nur verschoben – die Spiegelung an g fehlt.'};
+    return {k:'D',txt:'Tipp: Erst an g spiegeln, dann um v verschieben (oder umgekehrt – bei v parallel zu g kommt dasselbe heraus).'};
+  }
   const v=sub(m.V1,m.V0);
   if(eq(X,round(sub(P,v))))return {k:'B',txt:'Gegenrichtung! Sie haben um −v verschoben. Der Pfeil zeigt von seinem Anfang zu seiner Spitze.'};
   if(Math.abs(len(sub(X,P))-len(v))<e)return {k:'C',txt:'Die Länge stimmt, aber die Richtung nicht. PP′ muss parallel und gleich gerichtet zu v sein.'};
   return {k:'D',txt:'Zählen Sie die Kästchen von v ab: so viele nach rechts/links und oben/unten – und dieselben Schritte von P aus.'};
 }
-const FINGER={A:'1 Finger',B:'2 Finger',C:'3 Finger',D:'4 Finger'};
+const NUM={A:1,B:2,C:3,D:4};
 const LIVE={
-  'v14':{title:'Vorlesung 14 · Achsenspiegelung',task:{m:{t:'achse',A:V(0,-1),B:V(2,0)},P:V(4,-4)},cats:['A  richtig','B  senkrecht, aber Abstand falsch','C  g halbiert PP′, aber nicht senkrecht (z. B. entlang der Kästchen)','D  anderes (z. B. gleiche Seite)']},
-  'v15':{title:'Vorlesung 15 · Drehung',task:{m:{t:'dreh',Z:V(-1,-1),w:90},P:V(3,1)},cats:['A  richtig','B  falscher Drehsinn','C  richtiger Kreis, falscher Winkel','D  Abstand zu Z falsch']}
+  'v14':{title:'Vorlesung 14 · Achsenspiegelung',task:{m:{t:'achse',A:V(0,-1),B:V(2,0)},P:V(4,-4)},cats:['1  richtig','2  PP′ senkrecht zu g, aber Abstand falsch','3  g halbiert PP′, aber nicht senkrecht (z. B. entlang der Kästchen)','4  anderes (z. B. auf derselben Seite von g)']},
+  'v15':{title:'Vorlesung 15 · Drehung',task:{m:{t:'dreh',Z:V(-1,-1),w:90},P:V(3,1)},cats:['1  richtig','2  falscher Drehsinn','3  richtiger Kreis um Z, falscher Winkel','4  Abstand zu Z falsch']}
 };
 let score={n:0,ok:0};try{score=JSON.parse(localStorage.getItem('sw-score'))||score}catch(e){}
 function saveScore(){try{localStorage.setItem('sw-score',JSON.stringify(score))}catch(e){}}
@@ -253,7 +269,7 @@ function viewTask(app,live){
   if(cfg){task=Object.assign({},cfg.task);task.Q=round(applyMap(task.m,task.P));}else task=genTask(uebT);
   let X=null, done=false;
   const m=task.m;
-  const desc={achse:'Spiegeln Sie P an der Geraden g.',dreh:`Drehen Sie P um Z um ${m.w}°${Math.abs(m.w)===180?'':m.w>0?' (gegen den Uhrzeigersinn)':' (im Uhrzeigersinn)'}.`,punkt:'Spiegeln Sie P am Punkt Z.',versch:'Verschieben Sie P um den Vektor v.'}[m.t];
+  const desc={achse:'Spiegeln Sie P an der Geraden g.',dreh:`Drehen Sie P um Z um ${m.w}°${Math.abs(m.w)===180?'':m.w>0?' (gegen den Uhrzeigersinn)':' (im Uhrzeigersinn)'}.`,punkt:'Spiegeln Sie P am Punkt Z.',versch:'Verschieben Sie P um den Vektor v.',schub:'Bilden Sie P mit der Schubspiegelung ab: Spiegelung an g und Verschiebung um v (parallel zu g).'}[m.t];
   app.innerHTML=`
   ${cfg?`<div class="card"><h2>${cfg.title}</h2><p class="hint">Erst selbst setzen – dann mit der Hand abstimmen.</p></div>`:
   `<div class="card"><div class="row seg" id="types"></div><p class="score" id="sc"></p></div>`}
@@ -269,6 +285,7 @@ function viewTask(app,live){
   const {svg,g}=board(app.querySelector('#bd'));
   function draw(reveal){
     g.innerHTML='';drawGrid(g);const nav=css('--navy'),mag=css('--mag');
+    if(m.t==='schub'){lineThrough(g,m.A,m.B,{stroke:nav,'stroke-width':.08});arrowHead(g,m.A,m.B,nav,.12);label(g,mul(add(m.A,m.B),.5),'v',nav,-.6,.25);}
     if(m.t==='achse'){lineThrough(g,m.A,m.B,{stroke:nav,'stroke-width':.08});const L=add(m.B,mul(sub(m.B,m.A),1.2));label(g,inView(L)?L:m.B,'g',nav,.3,-.1);}
     if(m.t==='dreh'||m.t==='punkt'){el('circle',{cx:m.Z.x,cy:m.Z.y,r:.16,fill:nav},g);label(g,m.Z,'Z',nav,.25,.25);}
     if(m.t==='versch'){arrowHead(g,m.V0,m.V1,nav,.09);label(g,mul(add(m.V0,m.V1),.5),'v',nav,.2,.3);}
@@ -279,6 +296,7 @@ function viewTask(app,live){
         [task.P,Q].forEach(p=>el('line',{x1:m.Z.x,y1:m.Z.y,x2:p.x,y2:p.y,stroke:ok,'stroke-width':.05},g));}
       if(m.t==='punkt')el('line',{x1:task.P.x,y1:task.P.y,x2:Q.x,y2:Q.y,stroke:ok,'stroke-width':.05,'stroke-dasharray':'.15 .1'},g);
       if(m.t==='versch')arrowHead(g,task.P,Q,ok,.06);
+      if(m.t==='schub'){const Pm=reflect(task.P,m.A,m.B);el('line',{x1:task.P.x,y1:task.P.y,x2:Pm.x,y2:Pm.y,stroke:ok,'stroke-width':.05,'stroke-dasharray':'.15 .1'},g);el('circle',{cx:Pm.x,cy:Pm.y,r:.13,fill:'none',stroke:ok,'stroke-width':.05},g);arrowHead(g,Pm,Q,ok,.06);}
       el('circle',{cx:Q.x,cy:Q.y,r:.22,fill:ok},g);label(g,Q,'P′',ok);}
     if(X){el('circle',{cx:X.x,cy:X.y,r:.24,fill:'none',stroke:mag,'stroke-width':.09},g);el('circle',{cx:X.x,cy:X.y,r:.08,fill:mag},g);if(!reveal||!eq(X,task.Q))label(g,X,'?',mag,.3,-.6);}
   }
@@ -287,7 +305,7 @@ function viewTask(app,live){
     if(!X||done)return;done=true;app.querySelector('#chk').disabled=true;
     const c=classify(task,X), fb=app.querySelector('#fb');
     if(cfg){
-      fb.innerHTML=`<div class="fb ${c.k==='A'?'ok':'no'}"><div class="fingers">Ihre Antwort</div><div class="big">${c.k}</div><div class="fingers">Hand hoch über den Kopf: <b>${FINGER[c.k]}</b></div>
+      fb.innerHTML=`<div class="fb ${c.k==='A'?'ok':'no'}"><div class="fingers">Ihre Zahl</div><div class="big">${NUM[c.k]}</div><div class="fingers">Hand hoch über den Kopf mit <b>${NUM[c.k]} ${NUM[c.k]===1?'Finger':'Fingern'}</b></div>
         <p class="hint" style="margin-top:10px">${cfg.cats.join('<br>')}</p><div class="row" style="margin-top:8px"><button id="rv">Lösung zeigen (nach der Abstimmung)</button></div><div id="ex"></div></div>`;
       draw(false);
       fb.querySelector('#rv').onclick=()=>{draw(true);fb.querySelector('#ex').innerHTML=`<p style="margin:10px 0 0">${c.txt}</p>`;fb.querySelector('#rv').remove();};
