@@ -14,7 +14,7 @@ header{padding:14px 16px 6px;max-width:760px;margin:0 auto}
 header h1{font-size:20px;margin:0}
 header p{margin:2px 0 0;color:var(--mut);font-size:14px}
 nav{display:flex;gap:6px;padding:8px 16px;max-width:760px;margin:0 auto;flex-wrap:wrap}
-nav button{flex:1;min-width:120px}
+nav button{flex:1;min-width:100px;font-size:14px;padding:8px 6px}
 main{max-width:760px;margin:0 auto;padding:0 16px 40px}
 .card{background:var(--card);border-radius:14px;padding:14px;margin:10px 0;box-shadow:0 1px 2px rgba(0,0,0,.06)}
 button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 12px;cursor:pointer;min-height:42px}
@@ -38,16 +38,31 @@ input[type=range]{width:100%}
 .score{font-size:14px;color:var(--mut)}
 h2{font-size:17px;margin:0 0 8px}
 .foot{color:var(--mut);font-size:12px;text-align:center;margin-top:18px}
+.kick{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--navy);margin:0 0 6px}
+.kick.b{color:var(--mag)}
+.part.a{border-left:6px solid var(--navy)} .part.b{border-left:6px solid var(--mag)}
+.part h2{font-size:19px}
+.bridge{background:var(--navyL);font-size:15px}
+button.onb{background:var(--mag);border-color:var(--mag);color:#fff}
+nav button.b.on{background:var(--mag);border-color:var(--mag)}
+.seg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.seg3 button{min-width:0;padding:7px 4px;font-size:13px}
+table.tafel{border-collapse:collapse;font-size:14px}
+table.tafel th,table.tafel td{border:1px solid var(--line);padding:6px 4px;min-width:46px;text-align:center}
+table.tafel th{background:var(--navyL)} table.tafel td{cursor:pointer;height:34px}
+table.tafel td.ok{background:var(--okL)} table.tafel td.no{background:var(--warnL)} table.tafel td.sel{outline:3px solid var(--mag)}
 </style>
 </head>
 <body>
 <header>
   <h1>Symmetrie-Werkstatt</h1>
-  <p>Lernen und Anwenden von Geometrie · Kongruenzabbildungen</p>
+  <p>Lernen und Anwenden von Geometrie · Kongruenzabbildungen und Symmetrie</p>
 </header>
 <nav id="nav">
-  <button data-v="labor">Labor</button>
-  <button data-v="ueben">Bildpunkt setzen</button>
+  <button data-v="start">Start</button>
+  <button data-v="labor">A · Labor</button>
+  <button data-v="ueben">A · Bildpunkt setzen</button>
+  <button data-v="finder" class="b">B · Deckabbildungen</button>
+  <button data-v="tafel" class="b">B · Tafel</button>
 </nav>
 <main id="app"></main>
 <p class="foot">Prototyp · GIMB, Universität Münster · keine Datenerhebung, Fortschritt nur in Ihrem Browser</p>
@@ -128,6 +143,7 @@ const lab={t:'achse',A:V(-1,-5),B:V(1,5),Z:V(0,0),w:90,V0:V(-5,-5),V1:V(-2,-4),T
 function viewLabor(app){
   app.innerHTML=`
   <div class="card">
+    <div class="kick">Teil A · Kongruenzabbildungen – zwei Figuren: Original und Bild</div>
     <div class="row seg" id="types"></div>
     <div id="bd" style="margin-top:10px"></div>
     <div id="ctl"></div>
@@ -272,7 +288,7 @@ function viewTask(app,live){
   const desc={achse:'Spiegeln Sie P an der Geraden g.',dreh:`Drehen Sie P um Z um ${m.w}°${Math.abs(m.w)===180?'':m.w>0?' (gegen den Uhrzeigersinn)':' (im Uhrzeigersinn)'}.`,punkt:'Spiegeln Sie P am Punkt Z.',versch:'Verschieben Sie P um den Vektor v.',schub:'Bilden Sie P mit der Schubspiegelung ab: Spiegelung an g und Verschiebung um v (parallel zu g).'}[m.t];
   app.innerHTML=`
   ${cfg?`<div class="card"><h2>${cfg.title}</h2><p class="hint">Erst selbst setzen – dann mit der Hand abstimmen.</p></div>`:
-  `<div class="card"><div class="row seg" id="types"></div><p class="score" id="sc"></p></div>`}
+  `<div class="card"><div class="kick">Teil A · Kongruenzabbildungen – wo liegt das Bild?</div><div class="row seg" id="types"></div><p class="score" id="sc"></p></div>`}
   <div class="card">
     <p class="task">${desc} Tippen Sie auf den Gitterpunkt, an dem P′ liegt.</p>
     <div id="bd"></div>
@@ -318,14 +334,216 @@ function viewTask(app,live){
   draw(false);
 }
 
+// ---------- Startseite ----------
+function viewHome(app){
+  app.innerHTML=`
+  <div class="card part a">
+    <div class="kick">Teil A · Kongruenzabbildungen</div>
+    <h2>Eine Figur wird abgebildet</h2>
+    <p class="hint">Es gibt immer zwei Figuren: das Original F und sein Bild F′. Leitfrage: <b>Wo liegt das Bild?</b></p>
+    <div class="row" style="margin-top:10px"><button class="on" onclick="location.hash='labor'">Labor</button><button onclick="location.hash='ueben'">Bildpunkt setzen</button></div>
+  </div>
+  <div class="card bridge">
+    <b>Brücke:</b> In Teil B benutzen wir dieselben Abbildungen wie in Teil A – aber wir stellen eine andere Frage. Wir bilden eine Figur auf <i>sich selbst</i> ab.
+  </div>
+  <div class="card part b">
+    <div class="kick b">Teil B · Symmetrie als Eigenschaft</div>
+    <h2>Eine Figur bildet sich auf sich selbst ab</h2>
+    <p class="hint">Es gibt nur eine Figur; ihre Ecken sind beschriftet. Leitfrage: <b>Liegt das Bild genau wieder auf der Figur?</b> Dann ist die Abbildung eine Deckabbildung.</p>
+    <div class="row" style="margin-top:10px"><button class="onb" onclick="location.hash='finder'">Deckabbildungen finden</button><button onclick="location.hash='tafel'">Verknüpfungstafel</button></div>
+  </div>`;
+}
+
+// ---------- Teil B: Figuren ----------
+function regular(n,r,start){return Array.from({length:n},(_,k)=>{const a=(start+360*k/n)*Math.PI/180;return V(r*Math.cos(a),r*Math.sin(a));});}
+function pinwheel(){const out=[];for(let k=0;k<4;k++){out.push(rotate(V(1.5,-1.5),V(0,0),90*k));out.push(rotate(V(4.6,-0.3),V(0,0),90*k));}return out;}
+const FIGS={
+  quadrat:{name:'Quadrat',pts:[V(-3,-3),V(3,-3),V(3,3),V(-3,3)]},
+  rechteck:{name:'Rechteck',pts:[V(-4,-2.5),V(4,-2.5),V(4,2.5),V(-4,2.5)]},
+  raute:{name:'Raute',pts:[V(0,-4.5),V(3,0),V(0,4.5),V(-3,0)]},
+  parallelogramm:{name:'Parallelogramm',pts:[V(-4.5,-2),V(1.5,-2),V(4.5,2),V(-1.5,2)]},
+  gleichschenklig:{name:'gleichschenkliges Dreieck',pts:[V(-3,-3),V(3,-3),V(0,4.5)]},
+  gleichseitig:{name:'gleichseitiges Dreieck',pts:regular(3,4.6,90)},
+  sechseck:{name:'regelmäßiges Sechseck',pts:regular(6,4.6,0)},
+  windrad:{name:'Windrad',pts:pinwheel()},
+  viereck:{name:'unregelmäßiges Viereck',pts:[V(-4,-3),V(3,-2),V(4,3),V(-2,2)]}
+};
+const LET='ABCDEFGHIJKL';
+function figEdges(P){const n=P.length;return Array.from({length:n},(_,i)=>[i,(i+1)%n]);}
+function matchIdx(Q,P){return P.findIndex(p=>len(sub(p,Q))<1e-6);}
+// liefert Permutation (Array) oder null, wenn keine Deckabbildung
+function deckPerm(P,f){
+  const perm=P.map(p=>matchIdx(f(p),P));
+  if(perm.some(i=>i<0))return null;
+  const E=new Set(figEdges(P).map(([a,b])=>a<b?a+'-'+b:b+'-'+a));
+  for(const [a,b] of figEdges(P)){const x=perm[a],y=perm[b];if(!E.has(x<y?x+'-'+y:y+'-'+x))return null;}
+  return perm;
+}
+const permKey=p=>p.join(',');
+const centerOf=P=>mul(P.reduce((s,p)=>add(s,p),V(0,0)),1/P.length);
+function mapOf(m){return m.t==='id'?(p=>p):m.t==='dreh'?(p=>rotate(p,m.Z,m.w)):(p=>reflect(p,m.Z,add(m.Z,V(Math.cos(m.phi*Math.PI/180),Math.sin(m.phi*Math.PI/180)))));}
+function nameOf(m){return m.t==='id'?'id':m.t==='dreh'?`D${((m.w%360)+360)%360}°`:`S${m.phi}°`;}
+function fullGroup(P){
+  const C=centerOf(P),out=[],seen=new Set();
+  const cand=[{t:'id'}];
+  for(let w=15;w<360;w+=15)cand.push({t:'dreh',Z:C,w});
+  for(let phi=0;phi<180;phi+=15)cand.push({t:'achse',Z:C,phi});
+  for(const m of cand){const p=deckPerm(P,mapOf(m));if(p&&!seen.has(permKey(p))){seen.add(permKey(p));out.push(Object.assign({},m,{perm:p}));}}
+  return out;
+}
+function sortGroup(L){const rank=m=>m.t==='id'?0:m.t==='dreh'?1+(((m.w%360)+360)%360)/1000:2+m.phi/1000;return L.slice().sort((a,b)=>rank(a)-rank(b));}
+function permText(p){return p.map((j,i)=>`${LET[i]}→${LET[j]}`).join(', ');}
+
+// Zustand Teil B
+const fb={fig:'quadrat',mode:'dreh',Z:V(-5,5),w:90,phi:0,found:[],done:false,showMissing:false,last:null};
+function resetFound(){fb.found=[];fb.done=false;fb.showMissing=false;fb.last=null;}
+
+function drawFigure(g,P,color,fill,labels,dash,dist){dist=dist||.62;
+  el('polygon',{points:P.map(p=>`${p.x},${p.y}`).join(' '),fill,stroke:color,'stroke-width':.1,'stroke-dasharray':dash||'none','stroke-linejoin':'round'},g);
+  if(labels)P.forEach((p,i)=>{const C=centerOf(P),d=sub(p,C),k=len(d)>0?dist/len(d):0;label(g,add(p,mul(d,k)),labels[i],color,-.18,-.2,.6);});
+}
+
+function viewFinder(app,live){
+  if(live){fb.fig='sechseck';}
+  const P=FIGS[fb.fig].pts, G=fullGroup(P);
+  const isLive=!!live;
+  app.innerHTML=`
+  ${isLive?`<div class="card"><h2>Vorlesung 17 · Deckabbildungen des Sechsecks</h2><p class="hint">Finden Sie alle Deckabbildungen. Tippen Sie auf „Fertig“, wenn Sie keine weitere mehr finden – dann mit der Hand abstimmen.</p></div>`:
+  `<div class="card"><div class="kick b">Teil B · Symmetrie</div><div class="row seg3" id="figs"></div></div>`}
+  <div class="card">
+    <p class="task" style="margin-bottom:4px"><b>${FIGS[fb.fig].name}</b> – welche Abbildungen bilden die Figur auf sich selbst ab?</p>
+    <div id="bd"></div>
+    <div class="row seg" style="margin-top:10px" id="modes"></div>
+    <div id="ctl"></div>
+    <div class="row" style="margin-top:8px"><button class="primary" id="chk">Abbildung ausführen</button></div>
+    <div id="res"></div>
+  </div>
+  <div class="card">
+    <h2>Gefundene Deckabbildungen <span class="score" id="cnt"></span></h2>
+    <div id="list" class="badges"></div>
+    <div class="row" style="margin-top:10px">${fb.done?'':'<button id="fin">Fertig – ich finde keine weitere</button>'}${isLive?'':'<button id="tafelBtn">Zur Verknüpfungstafel</button><button id="rst">Neu beginnen</button>'}</div>
+    <div id="sum"></div>
+  </div>`;
+  if(!isLive){const figs=app.querySelector('#figs');for(const k in FIGS){const b=document.createElement('button');b.textContent=FIGS[k].name;b.className=fb.fig===k?'onb':'';b.onclick=()=>{fb.fig=k;resetFound();viewFinder(app)};figs.appendChild(b);}
+    app.querySelector('#rst').onclick=()=>{resetFound();viewFinder(app)};
+    app.querySelector('#tafelBtn').onclick=()=>{location.hash='tafel'};}
+  const modes=app.querySelector('#modes');
+  [['dreh','Drehung'],['achse','Achsenspiegelung'],['id','Identität']].forEach(([k,t])=>{const b=document.createElement('button');b.textContent=t;b.className=fb.mode===k?'onb':'';b.onclick=()=>{fb.mode=k;fb.last=null;viewFinder(app,live)};modes.appendChild(b);});
+  const ctl=app.querySelector('#ctl');
+  if(fb.mode==='dreh')ctl.innerHTML=`<div class="row" style="margin-top:10px"><span style="min-width:150px">Drehwinkel: <b id="wv"></b></span><input type="range" id="w" min="15" max="345" step="15"></div><p class="hint">Ziehen Sie das Zentrum Z an die richtige Stelle. Drehung gegen den Uhrzeigersinn.</p>`;
+  if(fb.mode==='achse')ctl.innerHTML=`<div class="row" style="margin-top:10px"><span style="min-width:150px">Lage der Achse: <b id="pv"></b></span><input type="range" id="phi" min="0" max="165" step="15"></div><p class="hint">Die Achse geht durch den Punkt Z – ziehen Sie ihn und drehen Sie die Achse mit dem Regler.</p>`;
+  if(fb.mode==='id')ctl.innerHTML=`<p class="hint" style="margin-top:10px">Die Identität lässt jeden Punkt, wo er ist. Ist sie eine Deckabbildung?</p>`;
+  const {svg,g}=board(app.querySelector('#bd'));
+  const cur=()=>fb.mode==='dreh'?{t:'dreh',Z:fb.Z,w:fb.w}:fb.mode==='achse'?{t:'achse',Z:fb.Z,phi:fb.phi}:{t:'id'};
+  function draw(){
+    g.innerHTML='';drawGrid(g);const nav=css('--navy'),mag=css('--mag'),ok=css('--ok');
+    drawFigure(g,P,nav,css('--navyL'),LET);
+    if(fb.showMissing){const miss=G.filter(m=>!fb.found.some(f=>permKey(f.perm)===permKey(m.perm)));
+      miss.filter(m=>m.t==='achse').forEach(m=>lineThrough(g,m.Z,add(m.Z,V(Math.cos(m.phi*Math.PI/180),Math.sin(m.phi*Math.PI/180))),{stroke:mag,'stroke-width':.05,'stroke-dasharray':'.2 .15'}));}
+    fb.found.filter(m=>m.t==='achse').forEach(m=>lineThrough(g,m.Z,add(m.Z,V(Math.cos(m.phi*Math.PI/180),Math.sin(m.phi*Math.PI/180))),{stroke:ok,'stroke-width':.04}));
+    const m=cur();
+    if(m.t==='achse')lineThrough(g,m.Z,add(m.Z,V(Math.cos(m.phi*Math.PI/180),Math.sin(m.phi*Math.PI/180))),{stroke:nav,'stroke-width':.08,'stroke-dasharray':'.3 .15'});
+    if(m.t==='dreh'){const r=1.1,a1=m.w*Math.PI/180,pts=[];for(let i=0;i<=24;i++){const a=a1*i/24;pts.push(add(m.Z,V(r*Math.cos(a),r*Math.sin(a))));}
+      el('polyline',{points:pts.map(p=>`${p.x},${p.y}`).join(' '),fill:'none',stroke:nav,'stroke-width':.07},g);arrowHead(g,pts[22],pts[24],nav,.07);}
+    if(fb.last){const f=mapOf(fb.last.m);const Q=P.map(f);drawFigure(g,Q,fb.last.perm?ok:mag,'none',P.map((_,i)=>LET[i]+'′'),'.25 .12',1.45);}
+    if(m.t!=='id'){el('circle',{cx:m.Z.x,cy:m.Z.y,r:.28,fill:nav,stroke:'#fff','stroke-width':.07,style:'cursor:grab','data-h':'Z'},g);label(g,m.Z,'Z',nav,.32,.32);}
+    if(fb.mode==='dreh')app.querySelector('#wv').textContent=fb.w+'°';
+    if(fb.mode==='achse')app.querySelector('#pv').textContent=fb.phi+'° zur Waagerechten';
+    // Liste
+    const list=app.querySelector('#list');
+    list.innerHTML=sortGroup(fb.found).map(m=>`<span class="badge" title="${permText(m.perm)}"><b>${nameOf(m)}</b> · ${m.perm.map(j=>LET[j]).join('')}</span>`).join('')||'<span class="hint">Noch keine.</span>';
+    app.querySelector('#cnt').textContent=fb.done&&!isLive?`– ${fb.found.length} von ${G.length}`:`(${fb.found.length})`;
+  }
+  const w=ctl.querySelector('#w');if(w){w.value=fb.w;w.oninput=()=>{fb.w=+w.value;fb.last=null;draw()};}
+  const ph=ctl.querySelector('#phi');if(ph){ph.value=fb.phi;ph.oninput=()=>{fb.phi=+ph.value;fb.last=null;draw()};}
+  let drag=false;
+  svg.addEventListener('pointerdown',e=>{if(e.target.getAttribute&&e.target.getAttribute('data-h')==='Z'){drag=true;svg.setPointerCapture(e.pointerId);e.preventDefault();}});
+  svg.addEventListener('pointermove',e=>{if(!drag)return;fb.Z=snap(svgPoint(svg,e),.5);fb.last=null;draw();});
+  const end=()=>{drag=false};svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',end);
+  app.querySelector('#chk').onclick=()=>{
+    const m=cur(),perm=deckPerm(P,mapOf(m));fb.last={m,perm};
+    const res=app.querySelector('#res');
+    if(!perm){res.innerHTML=`<div class="fb no"><b>Deckt sich nicht.</b> Das Bild (gestrichelt) liegt nicht genau auf der Figur. ${m.t==='id'?'':'Verändern Sie '+(m.t==='dreh'?'Zentrum oder Winkel.':'Lage oder Richtung der Achse.')}</div>`;}
+    else{const dup=fb.found.some(f=>permKey(f.perm)===permKey(perm));
+      if(!dup)fb.found.push(Object.assign({},m,{perm,Z:m.Z}));
+      res.innerHTML=`<div class="fb ok"><b>${dup?'Deckt sich – die haben Sie schon.':'Deckt sich! Neue Deckabbildung: '+nameOf(m)}</b><p style="margin:6px 0 0">Die Ecken werden so vertauscht: ${permText(perm)}${dup&&m.t==='dreh'?' (Gleiche Vertauschung = gleiche Abbildung.)':''}</p></div>`;}
+    draw();
+  };
+  const fin=app.querySelector('#fin');
+  if(fin)fin.onclick=()=>{fb.done=true;
+    const sum=app.querySelector('#sum'),missing=G.filter(m=>!fb.found.some(f=>permKey(f.perm)===permKey(m.perm)));
+    if(isLive){
+      let k=4;const missAx=missing.some(m=>m.t==='achse'),missRot=missing.some(m=>m.t==='dreh');
+      if(!missing.length)k=1;else if(missing.length===1&&missing[0].t==='id')k=2;else if(missAx)k=3;else k=4;
+      sum.innerHTML=`<div class="fb ${k===1?'ok':'no'}"><div class="fingers">Ihre Zahl</div><div class="big">${k}</div><div class="fingers">Hand hoch über den Kopf mit <b>${k} ${k===1?'Finger':'Fingern'}</b></div>
+        <p class="hint" style="margin-top:10px">1  alle 12 gefunden<br>2  nur die Identität fehlt<br>3  mindestens eine Achse fehlt<br>4  Drehungen fehlen</p>
+        <div class="row" style="margin-top:8px"><button id="rv">Lösung zeigen (nach der Abstimmung)</button></div><div id="ex"></div></div>`;
+      sum.querySelector('#rv').onclick=()=>{fb.showMissing=true;draw();
+        sum.querySelector('#ex').innerHTML=`<p style="margin:10px 0 0">Das regelmäßige Sechseck hat <b>12 Deckabbildungen</b>: 6 Drehungen (id, D60°, D120°, D180°, D240°, D300°) und 6 Achsenspiegelungen – 3 Achsen durch gegenüberliegende Ecken, 3 durch gegenüberliegende Seitenmitten. ${missing.length?`Ihnen fehlten ${missing.length}: ${sortGroup(missing).map(nameOf).join(', ')} (fehlende Achsen gestrichelt).`:''}</p>`;
+        sum.querySelector('#rv').remove();};
+      fin.remove();draw();return;
+    }
+    const axes=G.filter(m=>m.t==='achse').length;
+    sum.innerHTML=`<div class="fb ${missing.length?'no':'ok'}"><b>${missing.length?`Sie haben ${fb.found.length} von ${G.length} gefunden.`:`Vollständig: alle ${G.length} Deckabbildungen gefunden.`}</b>
+      <p style="margin:6px 0 0">Die Figur hat ${G.length-axes} Drehung${G.length-axes===1?'':'en'} (einschließlich id) und ${axes} Symmetrieachse${axes===1?'':'n'}. Ihre Deckabbildungen bilden ${axes?'eine <b>Diedergruppe</b>':'eine <b>zyklische Gruppe</b>'} mit ${G.length} Elementen.</p>
+      ${missing.length?'<div class="row" style="margin-top:8px"><button id="sm">Fehlende Achsen zeigen</button><button id="weiter">Weitersuchen</button></div>':''}</div>`;
+    const sm=sum.querySelector('#sm');if(sm)sm.onclick=()=>{fb.showMissing=true;draw();sm.remove();};
+    const we=sum.querySelector('#weiter');if(we)we.onclick=()=>{fb.done=false;viewFinder(app)};
+    fin.remove();draw();
+  };
+  draw();
+}
+
+// ---------- Teil B: Verknüpfungstafel ----------
+function viewTafel(app){
+  const P=FIGS[fb.fig].pts, L=sortGroup(fb.found);
+  if(L.length<2){app.innerHTML=`<div class="card"><div class="kick b">Teil B · Verknüpfungstafel</div><p>Finden Sie zuerst mindestens zwei Deckabbildungen einer Figur.</p><div class="row"><button class="onb" onclick="location.hash='finder'">Deckabbildungen finden</button></div></div>`;return;}
+  const comp=(row,col)=>col.perm.map(j=>row.perm[j]); // erst Kopfzeile (Spalte), dann Randspalte (Zeile)
+  const st={sel:null,filled:{}};
+  app.innerHTML=`<div class="card"><div class="kick b">Teil B · Verknüpfungstafel</div><h2>${FIGS[fb.fig].name}</h2>
+    <p class="hint">Zuerst die Abbildung der <b>Kopfzeile</b>, dann die der <b>Randspalte</b> ausführen. Tippen Sie eine Zelle an und wählen Sie das Ergebnis.</p>
+    <div style="overflow-x:auto;margin-top:8px"><table class="tafel" id="tb"></table></div>
+    <div id="pick"></div><div id="msg"></div></div>`;
+  const tb=app.querySelector('#tb');
+  function render(){
+    let h='<tr><th>∘</th>'+L.map(m=>`<th>${nameOf(m)}</th>`).join('')+'</tr>';
+    L.forEach((r,i)=>{h+=`<tr><th>${nameOf(r)}</th>`+L.map((c,j)=>{const f=st.filled[i+','+j];const s=st.sel===i+','+j?' sel':'';return `<td class="${f?(f.ok?'ok':'no'):''}${s}" data-c="${i},${j}">${f?f.txt:''}</td>`}).join('')+'</tr>';});
+    tb.innerHTML=h;
+    tb.querySelectorAll('td').forEach(td=>td.onclick=()=>{st.sel=td.dataset.c;render();pick();});
+    const total=L.length*L.length,okN=Object.values(st.filled).filter(f=>f.ok).length;
+    app.querySelector('#msg').innerHTML=okN===total?`<div class="fb ok"><b>Tafel vollständig!</b> Prüfen Sie: Kommt jede Abbildung in jeder Zeile und Spalte genau einmal vor? Ist die Tafel symmetrisch zur Hauptdiagonalen (kommutativ)?</div>`:`<p class="score">${okN} von ${total} Zellen richtig.</p>`;
+  }
+  function pick(){
+    const [i,j]=st.sel.split(',').map(Number),row=L[i],col=L[j];
+    const pk=app.querySelector('#pick');
+    pk.innerHTML=`<p class="task" style="margin-top:10px">${nameOf(row)} ∘ ${nameOf(col)} = ?</p><div class="badges">${L.map((m,k)=>`<button data-k="${k}">${nameOf(m)}</button>`).join('')}<button data-k="none">nicht in meiner Liste</button></div>`;
+    pk.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+      const res=comp(row,col),idx=L.findIndex(m=>permKey(m.perm)===permKey(res));
+      let ok,txt;
+      if(b.dataset.k==='none'){ok=idx<0;txt=ok?'neu!':'✗';}
+      else{ok=+b.dataset.k===idx;txt=ok?nameOf(L[idx]):'✗';}
+      st.filled[st.sel]={ok,txt};
+      let note='';
+      if(idx<0)note=`<div class="fb no"><b>Das Ergebnis fehlt in Ihrer Liste!</b> Die Verkettung ergibt die Vertauschung ${permText(res)} – das ist eine Deckabbildung, die Sie noch nicht gefunden haben. (Abgeschlossenheit!) Suchen Sie sie im Finder.</div>`;
+      else if(!ok)note=`<div class="fb no">Noch nicht. Verfolgen Sie eine Ecke: erst ${nameOf(col)}, dann ${nameOf(row)}.</div>`;
+      st.sel=null;render();pk.innerHTML=note;
+    });
+  }
+  render();
+}
+
 // ---------- Routing ----------
 function route(){
-  const h=(location.hash||'#labor').slice(1), app=document.getElementById('app');
-  document.querySelectorAll('#nav button').forEach(b=>b.className=(b.dataset.v===h)?'on':'');
+  const h=(location.hash||'#start').slice(1), app=document.getElementById('app');
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===h));
   document.getElementById('nav').style.display=h.startsWith('live')?'none':'flex';
   if(h==='ueben')viewTask(app);
+  else if(h==='labor')viewLabor(app);
+  else if(h==='finder')viewFinder(app);
+  else if(h==='tafel')viewTafel(app);
+  else if(h==='live-v17'){resetFound();fb.mode='dreh';fb.Z=V(-5,5);viewFinder(app,'v17');}
   else if(h.startsWith('live-')&&LIVE[h.slice(5)])viewTask(app,h.slice(5));
-  else viewLabor(app);
+  else viewHome(app);
   window.scrollTo(0,0);
 }
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{location.hash=b.dataset.v});
