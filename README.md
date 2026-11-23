@@ -4,9 +4,11 @@ Interaktive Kongruenzabbildungen für die Vorlesung „Lernen und Anwenden von G
 
 **App öffnen:** https://docschwob.github.io/symmetrie-werkstatt/
 
-## Herausgeber
+## Urheber
 
-Dr. Simeon Schwob, GIMB – Institut für grundlegende und inklusive mathematische Bildung, Universität Münster
+Dr. Simeon Schwob (GIMB, Universität Münster). Privates Angebot, kein offizielles Angebot der Universität Münster.
+
+[Impressum](https://docschwob.github.io/impressum.html)
 
 ## Datenschutz
 
