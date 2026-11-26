@@ -38,11 +38,6 @@ input[type=range]{width:100%}
 .score{font-size:14px;color:var(--mut)}
 h2{font-size:17px;margin:0 0 8px}
 .foot{color:var(--mut);font-size:12px;text-align:center;margin-top:18px}
-.foot{max-width:760px;margin:18px auto 0;padding:0 16px 24px}
-.foot p{margin:2px 0}
-.foot a{color:var(--navy)}
-.foot summary{cursor:pointer;color:var(--ink)}
-.foot details p{text-align:left;margin:6px 0}
 .kick{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--navy);margin:0 0 6px}
 .kick.b{color:var(--mag)}
 .part.a{border-left:6px solid var(--navy)} .part.b{border-left:6px solid var(--mag)}
@@ -70,16 +65,7 @@ table.tafel td.ok{background:var(--okL)} table.tafel td.no{background:var(--warn
   <button data-v="tafel" class="b">B · Tafel</button>
 </nav>
 <main id="app"></main>
-<footer class="foot">
-  <p>Urheber: Dr. Simeon Schwob (GIMB, Universität Münster) · privates Angebot</p>
-  <p>Keine Datenerhebung, Fortschritt nur in Ihrem Browser · Code: MIT · Materialien: CC BY 4.0 · <a href="https://docschwob.github.io/impressum.html" target="_blank" rel="noopener">Impressum</a></p>
-  <details>
-    <summary>Lizenz und Datenschutz</summary>
-    <p>Die App sendet keine Eingaben an einen Server. Der Übungsstand wird nur in Ihrem Browser gespeichert (localStorage) und lässt sich dort löschen.</p>
-    <p>Die Seite wird über GitHub Pages bereitgestellt. GitHub verarbeitet dabei technisch notwendige Zugriffsdaten wie die IP-Adresse (<a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">Datenschutzerklärung von GitHub</a>). Dienste Dritter sind nicht eingebunden.</p>
-    <p>Programmcode: <a href="https://opensource.org/license/mit" target="_blank" rel="noopener">MIT-Lizenz</a>. Aufgaben, Texte und Abbildungen: <a href="https://creativecommons.org/licenses/by/4.0/deed.de" target="_blank" rel="noopener">CC BY 4.0</a>. <a href="https://github.com/docschwob/symmetrie-werkstatt" target="_blank" rel="noopener">Quellcode auf GitHub</a></p>
-  </details>
-</footer>
+<p class="foot">Prototyp · GIMB, Universität Münster · keine Datenerhebung, Fortschritt nur in Ihrem Browser</p>
 
 <script>
 // ---------- Geometrie ----------
@@ -148,11 +134,15 @@ function applyMap(m,P){
   if(m.t==='dreh')return rotate(P,m.Z,m.w);
   if(m.t==='punkt')return pointRefl(P,m.Z);
   if(m.t==='schub')return translate(reflect(P,m.A,m.B),sub(m.B,m.A));
+  if(m.t==='zwei')return m.order==='gh'?reflect(reflect(P,m.A,m.B),m.C,m.D):reflect(reflect(P,m.C,m.D),m.A,m.B);
   return translate(P,sub(m.V1,m.V0));
 }
 
 // ---------- Labor ----------
-const lab={t:'achse',A:V(-1,-5),B:V(1,5),Z:V(0,0),w:90,V0:V(-5,-5),V1:V(-2,-4),T:[V(2,1),V(5,1),V(3,4)],
+const LABTYPES=Object.assign({},TYPES,{zwei:{name:'Zwei Achsen (Verkettung)',short:'Zwei Achsen'}});
+function lineMeet(A,B,C,D){const d=sub(B,A),e=sub(D,C),k=cross(d,e);if(Math.abs(k)<1e-9)return null;const t=cross(sub(C,A),e)/k;return add(A,mul(d,t));}
+function fmt(x){const r=Math.round(x*10)/10;return (Math.abs(r-Math.round(r))<1e-9?Math.round(r):r).toString().replace('.',',');}
+const lab={t:'achse',A:V(-1,-5),B:V(1,5),C:V(-6,-6),D:V(-2,-2),order:'gh',Z:V(0,0),w:90,V0:V(-5,-5),V1:V(-2,-4),T:[V(2,1),V(5,1),V(3,4)],
   show:{lines:true,orient:true,hide:false}};
 function viewLabor(app){
   app.innerHTML=`
@@ -168,14 +158,19 @@ function viewLabor(app){
     <label class="tg"><input type="checkbox" id="so"> Umlaufsinn anzeigen</label>
     <label class="tg"><input type="checkbox" id="sh"> Bild verdecken (erst vorhersagen, dann aufdecken)</label>
     <p class="hint">Ziehen Sie die Ecken A, B, C und die blauen Griffe. Alles rastet auf Gitterpunkte ein.</p>
+    <p class="hint" id="zweihint" style="display:none">Zwei Spiegelungen nacheinander: Die Ecken A, B, C werden erst an der einen, dann an der anderen Achse gespiegelt. Grau gestrichelt: das Zwischenbild nach der ersten Spiegelung. Drehen Sie h, schieben Sie h parallel zu g, vertauschen Sie die Reihenfolge – was für eine Abbildung entsteht jeweils insgesamt?</p>
     <p class="hint" id="schubhint" style="display:none">Schubspiegelung: Spiegelung an g, verkettet mit einer Verschiebung um v parallel zu g. Die beiden Griffe legen g und zugleich v fest. Mit „Verbindungen“ sehen Sie grau das Zwischenbild nach der Spiegelung. Die Reihenfolge ist egal – probieren Sie aus, warum.</p>
   </div>`;
   const types=app.querySelector('#types');
-  for(const k in TYPES){const b=document.createElement('button');b.textContent=TYPES[k].name;b.className=lab.t===k?'on':'';b.onclick=()=>{lab.t=k;if(k==='schub'&&len(sub(lab.B,lab.A))>6){lab.A=V(0,-1);lab.B=V(-4,-1);}viewLabor(app)};types.appendChild(b);}
+  for(const k in LABTYPES){const b=document.createElement('button');b.textContent=LABTYPES[k].name;b.className=lab.t===k?'on':'';b.onclick=()=>{if(k!==lab.t)history.replaceState(null,'','#labor');lab.t=k;if(k==='schub'&&len(sub(lab.B,lab.A))>6){lab.A=V(0,-1);lab.B=V(-4,-1);}if(k==='zwei'){lab.A=V(-5,0);lab.B=V(5,0);lab.C=V(-6,-6);lab.D=V(-2,-2);}viewLabor(app)};types.appendChild(b);}
   const ctl=app.querySelector('#ctl');
   if(lab.t==='dreh'){ctl.innerHTML=`<div class="row" style="margin-top:10px"><span style="min-width:120px">Drehwinkel: <b id="wv"></b></span><input type="range" id="w" min="-180" max="180" step="15"></div><p class="hint">Positive Winkel: gegen den Uhrzeigersinn.</p>`;
     const w=ctl.querySelector('#w');w.value=lab.w;w.oninput=()=>{lab.w=+w.value;draw()};}
   app.querySelector('#schubhint').style.display=lab.t==='schub'?'block':'none';
+  app.querySelector('#zweihint').style.display=lab.t==='zwei'?'block':'none';
+  if(lab.t==='zwei'){ctl.innerHTML=`<div class="row seg" style="margin-top:10px"><button id="o1">Zuerst an g, dann an h</button><button id="o2">Zuerst an h, dann an g</button></div>`;
+    const o1=ctl.querySelector('#o1'),o2=ctl.querySelector('#o2');const set=()=>{o1.className=lab.order==='gh'?'on':'';o2.className=lab.order==='hg'?'on':'';};
+    o1.onclick=()=>{lab.order='gh';set();draw()};o2.onclick=()=>{lab.order='hg';set();draw()};set();}
   for(const [id,key] of [['sl','lines'],['so','orient'],['sh','hide']]){const c=app.querySelector('#'+id);c.checked=lab.show[key];c.onchange=()=>{lab.show[key]=c.checked;draw()};}
   const {svg,g}=board(app.querySelector('#bd'));
   let drag=null;
@@ -184,7 +179,10 @@ function viewLabor(app){
     const nav=css('--navy'),mag=css('--mag');
     const T=lab.T, Tb=T.map(p=>applyMap(lab,p));
     // Abbildungs-Elemente
-    if(lab.t==='achse'||lab.t==='schub'){lineThrough(g,lab.A,lab.B,{stroke:nav,'stroke-width':.08});label(g,lab.B,'g',nav,.3,-.1);}
+    if(lab.t==='achse'||lab.t==='schub'||lab.t==='zwei'){lineThrough(g,lab.A,lab.B,{stroke:nav,'stroke-width':.08});label(g,lab.B,'g',nav,.3,-.1);}
+    if(lab.t==='zwei'){const wc=css('--warn');lineThrough(g,lab.C,lab.D,{stroke:wc,'stroke-width':.08});label(g,lab.D,'h',wc,.3,-.1);
+      const S=lineMeet(lab.A,lab.B,lab.C,lab.D);if(S&&Math.abs(S.x)<R&&Math.abs(S.y)<R){el('circle',{cx:S.x,cy:S.y,r:.13,fill:css('--ink')},g);label(g,S,'S',css('--ink'),-.55,.25);}
+      if(!lab.show.hide&&lab.show.lines){const Tm=T.map(p=>lab.order==='gh'?reflect(p,lab.A,lab.B):reflect(p,lab.C,lab.D));triangle(g,Tm,css('--mut'),'none','.12 .12');}}
     if(lab.t==='schub'){arrowHead(g,lab.A,lab.B,nav,.12);label(g,mul(add(lab.A,lab.B),.5),'v',nav,-.6,.2);
       if(!lab.show.hide&&lab.show.lines){const Tm=T.map(p=>reflect(p,lab.A,lab.B));triangle(g,Tm,css('--mut'),'none','.12 .12');}}
     if(lab.t==='dreh'||lab.t==='punkt'){label(g,lab.Z,'Z',nav,.3,.3);}
@@ -193,7 +191,7 @@ function viewLabor(app){
       if(lab.show.lines){
         T.forEach((P,i)=>{const Q=Tb[i];
           if(lab.t==='dreh'){el('line',{x1:lab.Z.x,y1:lab.Z.y,x2:P.x,y2:P.y,stroke:mag,'stroke-width':.035,'stroke-dasharray':'.15 .12'},g);el('line',{x1:lab.Z.x,y1:lab.Z.y,x2:Q.x,y2:Q.y,stroke:mag,'stroke-width':.035,'stroke-dasharray':'.15 .12'},g);}
-          else el('line',{x1:P.x,y1:P.y,x2:Q.x,y2:Q.y,stroke:mag,'stroke-width':.04,'stroke-dasharray':'.15 .12'},g);});
+          else if(lab.t!=='zwei')el('line',{x1:P.x,y1:P.y,x2:Q.x,y2:Q.y,stroke:mag,'stroke-width':.04,'stroke-dasharray':'.15 .12'},g);});
       }
       triangle(g,Tb,mag,css('--magL'),'.25 .12');
       if(lab.show.orient)orientMark(g,Tb,mag);
@@ -204,18 +202,26 @@ function viewLabor(app){
     ['A','B','C'].forEach((n,i)=>label(g,T[i],n,nav));
     // Griffe
     T.forEach((P,i)=>handle(g,P,nav,.24).dataset.h='T'+i);
-    if(lab.t==='achse'||lab.t==='schub'){handle(g,lab.A,nav).dataset.h='A';handle(g,lab.B,nav).dataset.h='B';}
+    if(lab.t==='achse'||lab.t==='schub'||lab.t==='zwei'){handle(g,lab.A,nav).dataset.h='A';handle(g,lab.B,nav).dataset.h='B';}
+    if(lab.t==='zwei'){handle(g,lab.C,css('--warn')).dataset.h='C';handle(g,lab.D,css('--warn')).dataset.h='D';}
     if(lab.t==='dreh'||lab.t==='punkt')handle(g,lab.Z,nav).dataset.h='Z';
     if(lab.t==='versch'){handle(g,lab.V0,nav,.26).dataset.h='V0';handle(g,lab.V1,nav).dataset.h='V1';}
     // Eigenschaften
     const same=orient(T)===orient(Tb);
-    let fix='';
+    let fix='',extra='';
     if(lab.t==='achse')fix='Fixpunkte: alle Punkte auf g (Fixpunktgerade)';
     else if(lab.t==='dreh')fix=(((lab.w%360)+360)%360===0)?'Drehung um 0°: Identität, alle Punkte fest':'Fixpunkt: nur Z';
     else if(lab.t==='punkt')fix='Fixpunkt: nur Z';
     else if(lab.t==='schub')fix='keine Fixpunkte; Fixgerade: nur g';
+    else if(lab.t==='zwei'){const S=lineMeet(lab.A,lab.B,lab.C,lab.D),sg=lab.order==='gh'?1:-1;
+      if(S){const dg=sub(lab.B,lab.A),dh=sub(lab.D,lab.C);let a=Math.atan2(cross(dg,dh),dot(dg,dh))*180/Math.PI;a=((a%180)+180)%180;
+        const w=((sg*2*a)%360+360)%360;
+        fix=`g und h schneiden sich in S · Winkel von g nach h: ${fmt(a)}°`;
+        extra=`<span class="badge m">insgesamt: Drehung um S um ${fmt(w)}°${w>180?' (= '+fmt(360-w)+'° im Uhrzeigersinn)':w>0?' gegen den Uhrzeigersinn':''}</span>`;}
+      else{const F=add(lab.A,mul(sub(reflect(lab.A,lab.C,lab.D),lab.A),.5)),d=sub(F,lab.A),v=mul(d,2*sg);
+        if(len(d)<1e-9){fix='g = h: dieselbe Achse';extra='<span class="badge m">insgesamt: Identität</span>';}
+        else{fix=`g ∥ h · Abstand: ${fmt(len(d))}`;extra=`<span class="badge m">insgesamt: Verschiebung um v = (${fmt(v.x)} | ${fmt(v.y)}), Länge ${fmt(len(v))} = 2 · Abstand</span>`;}}}
     else fix=eq(lab.V0,lab.V1)?'Nullvektor: Identität':'keine Fixpunkte';
-    let extra='';
     if(lab.t==='versch'){const v=sub(lab.V1,lab.V0);extra=`<span class="badge">v = (${v.x} | ${v.y})</span>`;}
     if(lab.t==='schub'){const v=sub(lab.B,lab.A);extra=`<span class="badge">v = (${v.x} | ${v.y}), parallel zu g</span>`;}
     if(lab.t==='dreh')extra=`<span class="badge">${lab.w>0?'gegen den Uhrzeigersinn':lab.w<0?'im Uhrzeigersinn':'kein Drehsinn'}</span>`;
@@ -549,10 +555,11 @@ function viewTafel(app){
 // ---------- Routing ----------
 function route(){
   const h=(location.hash||'#start').slice(1), app=document.getElementById('app');
-  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===h));
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===h||(b.dataset.v==='labor'&&h.startsWith('labor'))));
   document.getElementById('nav').style.display=h.startsWith('live')?'none':'flex';
   if(h==='ueben')viewTask(app);
   else if(h==='labor')viewLabor(app);
+  else if(h==='labor-achse'||h==='labor-zwei'){const k=h.slice(6);if(lab.t!==k){lab.t=k;if(k==='zwei'){lab.A=V(-5,0);lab.B=V(5,0);lab.C=V(-6,-6);lab.D=V(-2,-2);}else{lab.A=V(-1,-5);lab.B=V(1,5);}}viewLabor(app);}
   else if(h==='finder')viewFinder(app);
   else if(h==='tafel')viewTafel(app);
   else if(h==='live-v17'){resetFound();fb.mode='dreh';fb.Z=V(-5,5);viewFinder(app,'v17');}
