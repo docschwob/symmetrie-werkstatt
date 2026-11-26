@@ -38,6 +38,11 @@ input[type=range]{width:100%}
 .score{font-size:14px;color:var(--mut)}
 h2{font-size:17px;margin:0 0 8px}
 .foot{color:var(--mut);font-size:12px;text-align:center;margin-top:18px}
+.foot{max-width:760px;margin:18px auto 0;padding:0 16px 24px}
+.foot p{margin:2px 0}
+.foot a{color:var(--navy)}
+.foot summary{cursor:pointer;color:var(--ink)}
+.foot details p{text-align:left;margin:6px 0}
 .kick{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--navy);margin:0 0 6px}
 .kick.b{color:var(--mag)}
 .part.a{border-left:6px solid var(--navy)} .part.b{border-left:6px solid var(--mag)}
@@ -65,7 +70,16 @@ table.tafel td.ok{background:var(--okL)} table.tafel td.no{background:var(--warn
   <button data-v="tafel" class="b">B · Tafel</button>
 </nav>
 <main id="app"></main>
-<p class="foot">Prototyp · GIMB, Universität Münster · keine Datenerhebung, Fortschritt nur in Ihrem Browser</p>
+<footer class="foot">
+  <p>Urheber: Dr. Simeon Schwob (GIMB, Universität Münster) · privates Angebot</p>
+  <p>Keine Datenerhebung, Fortschritt nur in Ihrem Browser · Code: MIT · Materialien: CC BY 4.0 · <a href="https://docschwob.github.io/impressum.html" target="_blank" rel="noopener">Impressum</a></p>
+  <details>
+    <summary>Lizenz und Datenschutz</summary>
+    <p>Die App sendet keine Eingaben an einen Server. Der Übungsstand wird nur in Ihrem Browser gespeichert (localStorage) und lässt sich dort löschen.</p>
+    <p>Die Seite wird über GitHub Pages bereitgestellt. GitHub verarbeitet dabei technisch notwendige Zugriffsdaten wie die IP-Adresse (<a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">Datenschutzerklärung von GitHub</a>). Dienste Dritter sind nicht eingebunden.</p>
+    <p>Programmcode: <a href="https://opensource.org/license/mit" target="_blank" rel="noopener">MIT-Lizenz</a>. Aufgaben, Texte und Abbildungen: <a href="https://creativecommons.org/licenses/by/4.0/deed.de" target="_blank" rel="noopener">CC BY 4.0</a>. <a href="https://github.com/docschwob/symmetrie-werkstatt" target="_blank" rel="noopener">Quellcode auf GitHub</a></p>
+  </details>
+</footer>
 
 <script>
 // ---------- Geometrie ----------
